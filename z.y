@@ -1,38 +1,26 @@
 %{
 #include <iostream>
-#include <cstdlib>
 using namespace std;
 
 extern int yylex();
+extern int line_no;
 void yyerror(const char *s);
 %}
 
-
-
-%token INITIAL POINTED POINT_VAR ALPHABET TRUSE THEN
-%token SWAP SUITCASE BREAKUP CONTINUED FORM WHITE
-%token STRUCTURE UNICLASS ALL PRINT
-
+/* ---------- TOKENS ---------- */
+%token INITIAL POINTED ALPHABET PRINT
 %token ID FLOAT_CONST STRING_CONST
-
 %token PLUS MINUS MUL DIV MOD
-%token SEMICOLON COMMA
-%token LBRACE RBRACE LBRACKET RBRACKET
+%token SEMICOLON
+%token LBRACE RBRACE
 
-/* Operator precedence */
+/* ---------- PRECEDENCE ---------- */
 %left PLUS MINUS
 %left MUL DIV MOD
 
 %%
-
-
-
 program
-    : INITIAL block
-    ;
-
-block
-    : LBRACE statements RBRACE
+    : statements
     ;
 
 statements
@@ -45,11 +33,17 @@ statement
     | assignment
     | print_stmt
     | expression SEMICOLON
+    | block
+    | error SEMICOLON { yyerror("Invalid statement"); yyerrok; }
+    ;
+
+block
+    : LBRACE statements RBRACE
     ;
 
 declaration
-    : POINTED ID SEMICOLON
-    | POINT_VAR ID SEMICOLON
+    : INITIAL ID SEMICOLON
+    | POINTED ID SEMICOLON
     | ALPHABET ID SEMICOLON
     ;
 
@@ -58,7 +52,7 @@ assignment
     ;
 
 print_stmt
-    : PRINT expression SEMICOLON
+    : PRINT ID SEMICOLON
     ;
 
 expression
@@ -72,16 +66,10 @@ expression
     | FLOAT_CONST
     | STRING_CONST
     ;
-
 %%
-
-
-
 void yyerror(const char *s) {
-    cout << "Syntax Error: " << s << endl;
+    cout << "Syntax Error at line " << line_no << ": " << s << endl;
 }
-
-
 
 int main() {
     cout << "Syntax Analyzer Started...\n";
